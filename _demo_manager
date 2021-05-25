@@ -1,0 +1,108 @@
+#!/bin/bash
+#
+# Manager for running demos of the library output to dist
+
+### Params and prelims
+export BLA="\033[30m"
+export RED="\033[31m"
+export GRE="\033[32m"
+export YEL="\033[33m"
+export BLU="\033[34m"
+export MAG="\033[35m"
+export CYA="\033[36m"
+export WHI="\033[37m"
+
+#######################################
+# Prints options for this script
+# Globals:
+#   None
+# Arguments:
+#   None
+#######################################
+function _usage() {
+  echo -e """${GRE}
+  =======================================================
+    _library_manager usage:
+  -------------------------------------------------------
+    ${WHI}--help${GRE}   -  Show this usage
+    ${WHI}--react${GRE}  -  Run simple react app (parcel)
+    ${WHI}--cra${GRE}    -  Run simple react app (cra)
+    ${WHI}--umd${GRE}    -  Run simple vanilla html app
+    ${WHI}--ngx${GRE}    -  Run simple ngx app
+  =======================================================
+  """
+}
+
+#######################################
+# Colored wrapper around echo for
+#   pretty printing
+#######################################
+function _print() {
+  echo -e "${GRE}>>> ${1}${WHI}"
+}
+
+#######################################
+# Runs react app to test consumption of
+#   this npm package
+#######################################
+function _react() {
+  ./node_modules/.bin/parcel demo-react/index.html
+}
+
+#######################################
+# Runs react app to test consumption of
+#   this npm package
+#######################################
+function _cra() {
+  cd demo-cra
+  npm i
+  SKIP_PREFLIGHT_CHECK=true npm run start
+  cd ..
+}
+#######################################
+# Runs vanilla html with UMD app
+#   to test consumption of this
+#   npm package
+#######################################
+function _umd() {
+  cd demo-umd
+  ../node_modules/.bin/http-server -p 1234
+  cd ..
+}
+
+#######################################
+# Runs ngx app to test consumption of
+#   this npm package
+#######################################
+function _ngx() {
+  cd demo-ngx
+  ./node_modules/.bin/ng serve --port 1234
+  cd ..
+}
+
+main() {
+  case "$1" in
+  "--help" | "help")
+    _usage
+    ;;
+  "--react")
+    _react
+    ;;
+  "--cra")
+    _cra
+    ;;
+  "--ngx")
+    _ngx
+    ;;
+  "--umd")
+    _umd
+    ;;
+  *)
+    echo >&2 "Invalid option: $@"
+    _usage
+    return 1
+    ;;
+  esac
+}
+
+main "$@"

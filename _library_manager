@@ -1,0 +1,189 @@
+#!/bin/bash
+#
+# Manager for assembling library
+
+### Params and prelims
+FILE_NAME=$(cat "package.json" | jq -r '.name')
+export BLA="\033[30m"
+export RED="\033[31m"
+export GRE="\033[32m"
+export YEL="\033[33m"
+export BLU="\033[34m"
+export MAG="\033[35m"
+export CYA="\033[36m"
+export WHI="\033[37m"
+
+#######################################
+# Prints options for this script
+# Globals:
+#   None
+# Arguments:
+#   None
+#######################################
+function _usage() {
+  echo -e """${GRE}
+  =======================================================
+    _library_manager usage:
+  -------------------------------------------------------
+    ${WHI}--help ${GRE}      -  Show this usage
+    ${WHI}--build-umd${GRE}  -  Assemble umd & react part in ./dist
+    ${WHI}--build-ngx${GRE}  -  Assemble ngx part in ./dist
+    ${WHI}--build${GRE}      -  Assemble complete lib in ./dist
+    ${WHI}--dev  ${GRE}      -  Start tsdx dev server
+  =======================================================
+  """
+}
+
+#######################################
+# Colored wrapper around echo for pretty
+#   printing
+# Globals:
+#   None
+# Arguments:
+#   - Text to print
+#######################################
+function _print() {
+  echo -e "${GRE}>>> ${1}${WHI}"
+}
+
+#######################################
+# Begin development server
+# Globals:
+#   None
+# Arguments:
+#   None
+#######################################
+function _develop() {
+  ./node_modules/.bin/parcel serve -p 3000 src/dev.html
+}
+
+#######################################
+# Build umd and modules part of dist
+# Globals:
+#   None
+# Arguments:
+#   None
+#######################################
+function _build_umd() {
+  _print "Building cjs,umd,esm..."
+
+  _print "First build with threejs bundled into umd"
+  BUNDLE_THREE=true ./node_modules/.bin/tsdx build --format cjs,esm,umd --name TsdxThreejsTemplateWithThreejs
+
+  _print "Move umd with threejs to demo-umd"
+  # find dist -type f -name '*.umd.*js*' -exec bash -c $'mv {} $(echo {} | sed 's/.umd/.umd.withthreejs/g' | sed 's/dist/demo-umd/g' )' \;
+  find dist -type f -name '*.umd.*js*' -exec bash -c $'mv {} $(echo {} | sed 's/dist/demo-umd/g' )' \;
+
+  _print "Rebuild without threejs bundled into umd"
+  ./node_modules/.bin/tsdx build --format cjs,esm,umd --name TsdxThreejsTemplate
+
+  _print "Copy umd without threejs to demo-umd"
+  cp dist/*.umd.*.*js* demo-umd
+}
+
+#######################################
+# Create local package and install into
+#   demo-ngx and demo-cra to test that
+#   the package's module can be
+#   properly consumed
+# Globals:
+#   None
+# Arguments:
+#   None
+#######################################
+function _package_locally() {
+
+  _print "Creating dist/package.json"
+  ./_package_lib.ts
+
+  _print "Creating local package from dist"
+  cd dist
+  npm pack .
+  mv "${FILE_NAME}-"*".tgz" "../${FILE_NAME}.tgz"
+  cd ..
+
+  _print "Installing into demo-ngx"
+  cp "${FILE_NAME}.tgz" "demo-ngx/${FILE_NAME}.tgz"
+  cd demo-ngx
+  npm install "file:/./${FILE_NAME}.tgz" --force --no-save
+  cd ..
+
+  _print "Installing into demo-cra"
+  mv "${FILE_NAME}.tgz" "demo-cra/${FILE_NAME}.tgz"
+  cd demo-cra
+  npm install "file:/./${FILE_NAME}.tgz" --force --no-save
+  cd ..
+}
+
+#######################################
+# Build and install ngx part of dist
+# Globals:
+#   None
+# Arguments:
+#   None
+#######################################
+function _build_ngx() {
+
+  _print "Building ngx library"
+  _print "Refreshing ngx-lib dirs"
+  ngxDest="src-ngx-lib/projects/ngx-wrapper/src/lib/widgetSrc"
+  [ -d dist/ngx ] && rm -rf dist/ngx
+  [ ! -d dist/ngx ] && mkdir dist/ngx
+  [ -d $ngxDest ] && rm -rf $ngxDest
+  [ ! -d $ngxDest ] && mkdir -p $ngxDest
+
+  _print "Copying tsdx-built modules to ngx-builder lib"
+  cp -R dist/* $ngxDest
+
+  _print "Building ngx library called 'NgxWrapper'"
+  cd src-ngx-lib
+  npm i
+  ./node_modules/.bin/ng build NgxWrapper
+  cd ..
+
+  _print "Copying newly created ngx lib to dist"
+  cp -R src-ngx-lib/dist/ngx-wrapper dist/ngx
+  echo "??? >>> "$?
+  ls dist
+  echo "What is going on here?"
+}
+
+#######################################
+# Compiles src to consumables
+# Globals:
+#   None
+# Arguments:
+#   None
+#######################################
+function _build() {
+  _build_umd
+  _build_ngx
+  _package_locally
+}
+
+main() {
+  case "$1" in
+  "--help" | "help")
+    _usage
+    ;;
+  "--build")
+    _build
+    ;;
+  "--build-umd")
+    _build_umd
+    ;;
+  "--build-ngx")
+    _build_ngx
+    ;;
+  "--dev")
+    _develop
+    ;;
+  *)
+    echo >&2 "Invalid option: $@"
+    _usage
+    return 1
+    ;;
+  esac
+}
+
+main "$@"
