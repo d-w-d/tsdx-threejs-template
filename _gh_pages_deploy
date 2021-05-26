@@ -1,0 +1,26 @@
+#!/bin/bash
+#
+# Simple script to deploy demo-umd to github pages; uses npm package `gh-pages`
+
+### Build library afresh
+./_library_manager --build-umd
+
+### Details to deploy client to github pages
+GITHUB_USER_NAME='d-w-d'
+GITHUB_REPO_NAME='tsdx-threejs-template'
+
+### Build commmand gh-pages to deploy `demo-umd` dir
+read -r -d '' NODECMD <<EOM
+  const ghpages = require("gh-pages");
+  ghpages.publish("demo-umd", function (err) {
+    if (!!err) {
+      console.log("OH NO! STH WENT WRONG :(", err);
+      process.exit(1);
+    }
+    console.log("DEPLOYED TO: https://${GITHUB_USER_NAME}.github.io/${GITHUB_REPO_NAME}/");
+    console.log("             https://${GITHUB_USER_NAME}.github.io/${GITHUB_REPO_NAME}/bundled.html");
+  })
+EOM
+
+### Execute node code
+node -e "$NODECMD"

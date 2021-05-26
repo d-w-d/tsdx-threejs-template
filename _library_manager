@@ -27,6 +27,7 @@ function _usage() {
   -------------------------------------------------------
     ${WHI}--help ${GRE}      -  Show this usage
     ${WHI}--build-umd${GRE}  -  Assemble umd & react part in ./dist
+    ${WHI}--build-quick${GRE}-  Assemble min needed for just react
     ${WHI}--build-ngx${GRE}  -  Assemble ngx part in ./dist
     ${WHI}--build${GRE}      -  Assemble complete lib in ./dist
     ${WHI}--dev  ${GRE}      -  Start tsdx dev server
@@ -62,7 +63,7 @@ function _develop() {
 # Globals:
 #   None
 # Arguments:
-#   None
+#   All script args
 #######################################
 function _build_umd() {
   _print "Building cjs,umd,esm..."
@@ -79,6 +80,19 @@ function _build_umd() {
 
   _print "Copy umd without threejs to demo-umd"
   cp dist/*.umd.*.*js* demo-umd
+}
+
+#######################################
+# Absolute basic build needed for react
+#   consumption
+# Globals:
+#   None
+# Arguments:
+#   None
+#######################################
+function _build_quick() {
+  _print "Quick build..."
+  BUNDLE_THREE=true ./node_modules/.bin/tsdx build --format esm
 }
 
 #######################################
@@ -170,6 +184,9 @@ main() {
     _build
     ;;
   "--build-umd")
+    _build_umd
+    ;;
+  "--build-quick")
     _build_umd
     ;;
   "--build-ngx")

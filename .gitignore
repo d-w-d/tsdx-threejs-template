@@ -5,3 +5,4 @@ dist
 .parcel-cache
 **/*.tgz
 package
+dist-gh-pages
