@@ -45250,6 +45250,44 @@
 
       this.destroyHook = function () {};
 
+      this.registerSceneEntities = function (sceneEntities) {
+        sceneEntities.forEach(function (el) {
+          return _this._sceneEntities.push(el);
+        });
+      };
+      /**
+       * This method lets you show/hide the objects within in your scene
+       * designated as 'helpers'. It relies on the practice of setting the property `userData.isHelper = true`
+       * on any object you want to be classified as a helper
+       */
+
+
+      this.setHelpersVisibility = function () {
+        _this._scene.traverse(function (child) {
+          return child.userData.isHelper && (child.visible = _this._isHelpersShown);
+        });
+      };
+
+      this.toggleHelpersVisibility = function () {
+        _this._isHelpersShown = !_this._isHelpersShown;
+
+        _this.setHelpersVisibility();
+      };
+
+      this.updateCameraAspect = function () {
+        // Not sure where/how, but canvas' style width/height
+        // gets altered and needs to be reset to 100%
+        _this._canvas.style.width = '100%';
+        _this._canvas.style.height = '100%';
+        var width = _this._canvas.offsetWidth || 1;
+        var height = _this._canvas.offsetHeight || 1;
+        _this._camera.aspect = width / height;
+
+        _this._camera.updateProjectionMatrix();
+
+        _this._renderer.setSize(width, height);
+      };
+
       this.destroy = function () {
         window.removeEventListener('resize', _this.updateCameraAspect);
 
@@ -45457,50 +45495,9 @@
       return init;
     }();
 
-    _proto.registerSceneEntities = function registerSceneEntities(sceneEntities) {
-      var _this3 = this;
-
-      sceneEntities.forEach(function (el) {
-        return _this3._sceneEntities.push(el);
-      });
-    }
-    /**
-     * This method lets you show/hide the objects within in your scene
-     * designated as 'helpers'. It relies on the practice of setting the property `userData.isHelper = true`
-     * on any object you want to be classified as a helper
-     */
-    ;
-
-    _proto.setHelpersVisibility = function setHelpersVisibility() {
-      var _this4 = this;
-
-      this._scene.traverse(function (child) {
-        return child.userData.isHelper && (child.visible = _this4._isHelpersShown);
-      });
-    };
-
-    _proto.toggleHelpersVisibility = function toggleHelpersVisibility() {
-      this._isHelpersShown = !this._isHelpersShown;
-      this.setHelpersVisibility();
-    };
-
     _proto.setFramesPerSecond = function setFramesPerSecond(newFps) {
       if (newFps <= 0 || newFps > 100) return;
       this._fps = newFps;
-    };
-
-    _proto.updateCameraAspect = function updateCameraAspect() {
-      // Not sure where/how, but canvas' style width/height
-      // gets altered and needs to be reset to 100%
-      this._canvas.style.width = '100%';
-      this._canvas.style.height = '100%';
-      var width = this._canvas.offsetWidth || 1;
-      var height = this._canvas.offsetHeight || 1;
-      this._camera.aspect = width / height;
-
-      this._camera.updateProjectionMatrix();
-
-      this._renderer.setSize(width, height);
     };
 
     _proto._update = function _update() {
@@ -52878,10 +52875,6 @@
                     // Add helperBox to all children of loadedObject
                     loadedObject.traverse(function (child) {
                       child.visible = true;
-                      var helperBox = new BoxHelper(child, 0xffff00);
-                      helperBox.userData.isHelper = true;
-
-                      _this2._sceneEntityGroup.add(helperBox); // If child is a directional light, then give it a helper
                       // See dev notes on why all this scaling logic is needed
 
 
@@ -52901,8 +52894,6 @@
                         helper.userData.isHelper = true;
 
                         _this2._sceneEntityGroup.add(helper);
-
-                        console.log(newDirectionalLight, child);
                       }
                     });
                     resolve(_this2._sceneEntityGroup);
@@ -53191,6 +53182,7 @@
    * Properties common to all html buttons
    */
   var buttonBackgroundColor = 'rgba(255,255,255,0.2)';
+  var buttonClickedBackgroundColor = 'rgba(255,255,255,0.4)';
   var buttonTextColor = 'rgba(255,255,255,0.8)';
   var buttonCursorType = 'pointer';
   var buttonPadding = '10px';
@@ -53214,7 +53206,7 @@
    * common to all html buttons; append to container when ready
    */
 
-  var injectCommonButtonProperties = function injectCommonButtonProperties(button, container) {
+  var injectCommonButtonProperties = function injectCommonButtonProperties(button, container, onClickCB) {
     // --->>>
     // Add to global styles
     addGlobalStyles(); // Start loading the remote fonts style sheet; mutate button on completion
@@ -53256,10 +53248,18 @@
       button.style.setProperty('-khtml-user-select', 'none');
       button.style.setProperty('-moz-user-select', 'none');
       button.style.setProperty('-ms-user-select', 'none');
-      button.style.setProperty('user-select', 'none'); // Make visible
+      button.style.setProperty('user-select', 'none'); // Properties related to click effect
 
-      container.append(button); // Trigger fade-in
-      // button.style.setProperty('opacity', '1');
+      button.style.setProperty('transition', 'background-color 50ms ease-in-out');
+      button.addEventListener('click', function () {
+        button.style.setProperty('background-color', buttonClickedBackgroundColor);
+        setTimeout(function () {
+          button.style.setProperty('background-color', buttonBackgroundColor);
+          onClickCB();
+        }, 200);
+      }); // Make visible
+
+      container.append(button);
     }
   };
 
@@ -53268,7 +53268,7 @@
    * @param container
    */
 
-  var buttonToggleLights = function buttonToggleLights(container) {
+  var buttonToggleLights = function buttonToggleLights(container, onClickCB) {
     // --->>>
     // Warning
     if (!container) throw new Error('Canvas Container is Falsy!'); // Set properties unique to this button
@@ -53278,7 +53278,7 @@
     button.style.setProperty('top', '10px');
     button.style.setProperty('left', '10px'); // Set properties common to all buttons; append to container when ready
 
-    injectCommonButtonProperties(button, container); // Finish him
+    injectCommonButtonProperties(button, container, onClickCB); // Finish him
 
     return button;
   };
@@ -53288,7 +53288,7 @@
    * @param container
    */
 
-  var buttonToggleHelpers = function buttonToggleHelpers(container) {
+  var buttonToggleHelpers = function buttonToggleHelpers(container, onClickCB) {
     // --->>>
     // Warning
     if (!container) throw new Error('Canvas Container is Falsy!'); // Set properties unique to this button
@@ -53298,7 +53298,7 @@
     button.style.setProperty('top', '10px');
     button.style.setProperty('right', '10px'); // Set properties common to all buttons; append to container when ready
 
-    injectCommonButtonProperties(button, container); // Finish him
+    injectCommonButtonProperties(button, container, onClickCB); // Finish him
 
     return button;
   };
@@ -53373,9 +53373,7 @@
       _this.postInitHook = function () {
         // --->>>
         // Add buttons
-        _this.toggleLightsButton = buttonToggleLights(_this._container);
-
-        _this.toggleLightsButton.addEventListener('click', function () {
+        _this.toggleLightsButton = buttonToggleLights(_this._container, function () {
           var _this$_directionalLig;
 
           _this._isDirectionalLightOn = !_this._isDirectionalLightOn;
@@ -53383,12 +53381,9 @@
 
           _this._demoLoadedObject.toggleInternalLights();
         });
-
-        _this.toggleHelpersButton = buttonToggleHelpers(_this._container);
-
-        _this.toggleHelpersButton.addEventListener('click', function () {
-          _this.toggleHelpersVisibility();
-        });
+        console.log('>>>', _this.toggleLightsButton.innerHTML);
+        _this.toggleHelpersButton = buttonToggleHelpers(_this._container, _this.toggleHelpersVisibility);
+        console.log('>>>', _this.toggleHelpersButton);
       }; // Set initial camera position
 
 
