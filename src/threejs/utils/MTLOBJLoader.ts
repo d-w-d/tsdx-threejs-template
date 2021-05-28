@@ -1,15 +1,17 @@
 import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader';
+import { DDSLoader } from 'three/examples/jsm/loaders/DDSLoader';
 
 import { resizeThreeJsObject } from './resizeThreeJsObject';
 import { enshadowChildren } from './enshadowChildren';
 import { centerOnBoundingBox } from './centerOnBoundingBox';
 
 /**
- * Wrapper around OBJLoader and MTLLoader letting me just specify
+ * Wrapper around OBJLoader and MTLLoader letting you just specify
  * urls to the obj and mtl files, a scaling factor, and a callback to use
  * on the resulting threeJs object
+ * Patterns taken from: https://threejs.org/examples/webgl_loader_obj_mtl.html
  */
 export function MTLOBJLoader(
   mtlUrl: string,
@@ -19,11 +21,15 @@ export function MTLOBJLoader(
   isCenteredOnBoundingBox?: boolean,
   isShadowShown?: boolean
 ): void {
-  new MTLLoader().load(mtlUrl, function(_mtlParseResult) {
+  // --->>>
+
+  const manager = new THREE.LoadingManager();
+  manager.addHandler(/\.dds$/i, new DDSLoader());
+  new MTLLoader(manager).load(mtlUrl, function(materials) {
     // --->>>
 
-    const objLoader = new OBJLoader();
-    objLoader.load(
+    materials.preload();
+    new OBJLoader().setMaterials(materials).load(
       objUrl,
       object => {
         if (!!targetRadius) resizeThreeJsObject(object, targetRadius);

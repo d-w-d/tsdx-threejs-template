@@ -1,0 +1,74 @@
+#!/bin/bash
+#
+# Goes through codebase and replaces old names with new ones
+# Only run this after freshly cloning from the template repo
+
+### Vars you need to name:
+### CAUTION! Try to make your names 'unique'
+NEW_NAME='tsdx-threejs-template'
+NEW_CAMEL_NAME='TsdxThreejsTemplate'
+
+### Extract old names form package.json
+OLD_NAME=$(cat "package.json" | jq -r '.name')
+OLD_CAMEL_NAME=$(cat "package.json" | jq -r '.CamelName')
+
+OLD_NAME2=$(echo $OLD_NAME | sed 's/-//g')
+NEW_NAME2=$(echo $NEW_NAME | sed 's/-//g')
+
+### Use gsed if on a Mac
+SED='sed'
+if [[ $(uname -s) == Darwin ]]; then
+  echo -e "${RED}On a Mac, need to use gsed${WHI}"
+  ! $(command -v gsed 2>/dev/null 1>&2) &&
+    echo -e "${RED}gsed not found! Use \`brew install gsed\`${WHI}" &&
+    exit 1
+  SED='gsed'
+fi
+
+### Warnings
+clear
+echo -e """${RED}
+=================================================================
+Transforming:
+${GRE}
+${OLD_NAME} => ${NEW_NAME}
+${OLD_CAMEL_NAME} => ${NEW_CAMEL_NAME}
+${OLD_NAME2} => ${NEW_NAME2}
+${RED}
+=================================================================
+
+Sleeping 5 seconds ...  ${WHI}
+"""
+
+function findReplace() {
+  local old_name=$1
+  local new_name=$2
+  echo ">>> $old_name >>> $new_name"
+  find ./ -type f -not \( \
+    -path '**/node_modules/*' \
+    -o -path '**/.git/*' \
+    \) -exec $SED -i "s/$old_name/$new_name/g" {} \;
+}
+
+sleep 5
+
+### Peform replacements; be sure to skip .git and node_modules
+# echo ">>> $OLD_NAME >>> $NEW_NAME"
+# find ./ -type f -not \( -path '**/node_modules/*' -o -path '**/.git/*' \) -exec $SED -i "s/$OLD_NAME/$NEW_NAME/g" {} \;
+# echo ">>> $OLD_CAMEL_NAME >>> $NEW_CAMEL_NAME"
+# find ./ -type f -not \( -path '**/node_modules/*' -o -path '**/.git/*' \) -exec $SED -i "s/$OLD_CAMEL_NAME/$NEW_CAMEL_NAME/g" {} \;
+
+findReplace $OLD_NAME $NEW_NAME
+findReplace $OLD_CAMEL_NAME $NEW_CAMEL_NAME
+
+### ...
+### This is needed because tsdx has to-be-changed behavior that causes
+### the --name flag to be used to rename files (not just UMD variable).
+### This block can be removed in tsdx v0.15+
+### See: https://github.com/formium/tsdx/pull/669
+OLD_NAME2=$(echo $OLD_NAME | sed 's/-//g')
+NEW_NAME2=$(echo $NEW_NAME | sed 's/-//g')
+# echo ">>> $OLD_NAME2 >>> $NEW_NAME2"
+# find ./ -type f -not \( -path '**/node_modules/*' -o -path '**/.git/*' \) -exec $SED -i "s/$OLD_NAME2/$NEW_NAME2/g" {} \;
+
+findReplace $OLD_NAME2 $NEW_NAME2

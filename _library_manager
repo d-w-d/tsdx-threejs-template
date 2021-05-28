@@ -25,12 +25,13 @@ function _usage() {
   =======================================================
     _library_manager usage:
   -------------------------------------------------------
-    ${WHI}--help ${GRE}      -  Show this usage
-    ${WHI}--build-umd${GRE}  -  Assemble umd & react part in ./dist
+    ${WHI}--help       ${GRE}-  Show this usage
+    ${WHI}--build-umd  ${GRE}-  Assemble umd & react part in ./dist
     ${WHI}--build-quick${GRE}-  Assemble min needed for just react
-    ${WHI}--build-ngx${GRE}  -  Assemble ngx part in ./dist
-    ${WHI}--build${GRE}      -  Assemble complete lib in ./dist
-    ${WHI}--dev  ${GRE}      -  Start tsdx dev server
+    ${WHI}--build-ngx  ${GRE}-  Assemble ngx part in ./dist
+    ${WHI}--build      ${GRE}-  Assemble complete lib in ./dist
+    ${WHI}--dev        ${GRE}-  Serve up src code directly
+    ${WHI}--dev-react  ${GRE}-  Watch builds and serve demo-react
   =======================================================
   """
 }
@@ -48,7 +49,8 @@ function _print() {
 }
 
 #######################################
-# Begin development server
+# Begin development server acting
+#   directly on the src code
 # Globals:
 #   None
 # Arguments:
@@ -56,6 +58,25 @@ function _print() {
 #######################################
 function _develop() {
   ./node_modules/.bin/parcel serve -p 3000 src/dev.html
+}
+
+#######################################
+# Start watching builds on src code and
+#   running parel on output; useful
+#   when you want to develop react
+#   consumption of the lib
+# Globals:
+#   None
+# Arguments:
+#   All script args
+#######################################
+function _develop_react() {
+  # ./node_modules/.bin/parcel serve -p 3000 src/dev.html
+  ./node_modules/.bin/tsdx watch &
+  PID=$!
+  ./_demo_manager --react
+  pkill $PID
+
 }
 
 #######################################
@@ -119,13 +140,13 @@ function _package_locally() {
   _print "Installing into demo-ngx"
   cp "${FILE_NAME}.tgz" "demo-ngx/${FILE_NAME}.tgz"
   cd demo-ngx
-  npm install "file:/./${FILE_NAME}.tgz" --force --no-save
+  npm install "file:/./${FILE_NAME}.tgz" --force
   cd ..
 
   _print "Installing into demo-cra"
   mv "${FILE_NAME}.tgz" "demo-cra/${FILE_NAME}.tgz"
   cd demo-cra
-  npm install "file:/./${FILE_NAME}.tgz" --force --no-save
+  npm install "file:/./${FILE_NAME}.tgz" --force
   cd ..
 }
 
@@ -194,6 +215,10 @@ main() {
     ;;
   "--dev")
     _develop
+    ;;
+
+  "--dev-react")
+    _develop_react
     ;;
   *)
     echo >&2 "Invalid option: $@"

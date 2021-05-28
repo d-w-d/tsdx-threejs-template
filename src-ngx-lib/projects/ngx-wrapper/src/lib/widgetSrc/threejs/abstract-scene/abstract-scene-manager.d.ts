@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls';
-import { ISceneEntity } from './abstract-scene-entity';
+import { ISceneEntity } from './models';
 /**
  * This abstract class is to be inherited by the SceneManager instance.
  * The idea is to place all the usual/boilerplate code for setting up
@@ -23,31 +23,33 @@ export declare abstract class AbstractSceneManager {
     protected _clock: THREE.Clock;
     protected _initialViewingVector: THREE.Vector3;
     protected _isSceneReady: boolean;
+    protected _isRendering: boolean;
+    protected _isHelpersShown: boolean;
     protected _isInit: boolean;
+    protected _container: HTMLElement | null;
     protected _fps: number;
     protected _camera: THREE.PerspectiveCamera;
-    protected _orbitControls?: OrbitControls | TrackballControls;
+    protected _controls?: OrbitControls | TrackballControls;
     protected _sceneEntities: ISceneEntity[];
     updateCamera: (time: number) => void;
     preInitHook: () => void;
     postInitHook: () => void;
+    destroyHook: () => void;
     constructor(_containerId: string, _isWorldFlippable?: boolean);
     init(): Promise<void>;
-    addSceneEntities(sceneEntities: ISceneEntity[]): void;
-    update(): void;
+    registerSceneEntities: (sceneEntities: ISceneEntity[]) => void;
     /**
      * This method lets you show/hide the objects within in your scene
      * designated as 'helpers'. It relies on the practice of setting the property `userData.isHelper = true`
      * on any object you want to be classified as a helper
      */
-    setHelpersVisibility(isHelpersShown: boolean): void;
-    updateCameraAspect(): void;
+    setHelpersVisibility: () => void;
+    toggleHelpersVisibility: () => void;
+    setFramesPerSecond(newFps: number): void;
+    updateCameraAspect: () => void;
+    destroy: () => void;
+    _update(): void;
     _render: () => void;
+    _startRendering: () => void;
     _stopRendering: () => void;
-}
-/**
- * Interface to be implemented by every instance of SceneManager
- */
-export interface ISceneManager extends AbstractSceneManager {
-    updateCamera: (time: number) => void;
 }

@@ -4,7 +4,10 @@ import * as THREE from 'three';
  * Function to scale an object so that the child with the largest bounding-sphere radius
  * will end up with a bounding sphere radius equal to the supplied targetRadius
  */
-export function resizeThreeJsObject(object: THREE.Object3D, targetRadius: number) {
+export function resizeThreeJsObject(
+  object: THREE.Object3D,
+  targetRadius: number
+) {
   // --------------------------------------------------------------------------->>>
 
   let biggestSphereRadius: number = Math.pow(10, -10);

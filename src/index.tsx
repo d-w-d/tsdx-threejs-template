@@ -1,6 +1,6 @@
 import { SceneManager } from './threejs/scene-manager';
 
-let threejsScene;
+let threejsScene: SceneManager;
 
 /**
  * Create threeJs canvas and inject into container
@@ -14,6 +14,15 @@ export function init(containerId = 'threejs-canvas-container') {
 
   threejsScene = new SceneManager(containerId);
   threejsScene.init();
+}
+
+/**
+ * Destroy
+ */
+export function destroy() {
+  // --->>>
+
+  threejsScene.destroy();
 }
 
 /**

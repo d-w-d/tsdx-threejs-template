@@ -1,13 +1,11 @@
-import * as THREE from "three";
+import * as THREE from 'three';
 
-import {
-  AbstractSceneEntity,
-  ISceneEntity,
-} from "../abstract-scene/abstract-scene-entity";
+import { AbstractSceneEntity } from '../abstract-scene/abstract-scene-entity';
+import { ISceneEntity } from '../abstract-scene/models';
 
 export class MiscHelpers extends AbstractSceneEntity implements ISceneEntity {
   async init() {
-    return new Promise<THREE.Group>((resolve) => {
+    return new Promise<THREE.Group>(resolve => {
       const axesHelper = new THREE.AxesHelper(500);
       // Mark this as helper in order to be toggle-able
       axesHelper.userData.isHelper = true;

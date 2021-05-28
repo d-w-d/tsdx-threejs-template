@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 
-export function angleBetweenVector3s(v1: THREE.Vector3, v2: THREE.Vector3): number {
+export function angleBetweenVector3s(
+  v1: THREE.Vector3,
+  v2: THREE.Vector3
+): number {
   const dp3: number = dotProduct3(v1, v2);
   const cosTheta = (dp3 / lengthVector3(v1)) * lengthVector3(v2);
   const tryTheta = Math.acos(cosTheta);
@@ -16,7 +19,14 @@ function dotProduct3(v1: THREE.Vector3, v2: THREE.Vector3): number {
   return Math.abs(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
 }
 
-export function distanceBetweenVector3s(v1: THREE.Vector3, v2: THREE.Vector3): number {
-  const connectVector = new THREE.Vector3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
+export function distanceBetweenVector3s(
+  v1: THREE.Vector3,
+  v2: THREE.Vector3
+): number {
+  const connectVector = new THREE.Vector3(
+    v1.x - v2.x,
+    v1.y - v2.y,
+    v1.z - v2.z
+  );
   return lengthVector3(connectVector);
 }

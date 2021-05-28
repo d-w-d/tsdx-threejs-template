@@ -1,19 +1,17 @@
-import * as THREE from "three";
+import * as THREE from 'three';
 
-import {
-  AbstractSceneEntity,
-  ISceneEntity,
-} from "../abstract-scene/abstract-scene-entity";
+import { AbstractSceneEntity } from '../abstract-scene/abstract-scene-entity';
+import { ISceneEntity } from '../abstract-scene/models';
 
 export class Square extends AbstractSceneEntity implements ISceneEntity {
-  //
+  // ~~~>>>
 
   constructor(private sideLength: number) {
     super();
   }
 
   async init() {
-    return new Promise<THREE.Group>((resolve) => {
+    return new Promise<THREE.Group>(resolve => {
       this._sceneEntityGroup.add(
         new THREE.Mesh(
           new THREE.BoxGeometry(

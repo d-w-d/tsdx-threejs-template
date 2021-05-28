@@ -1,5 +1,5 @@
 import React from 'react';
-import { init } from '.';
+import { init, destroy } from '.';
 
 interface IProps {
   width?: number | string;
@@ -23,6 +23,7 @@ export function TsdxThreejsTemplate(props: IProps) {
   React.useEffect(() => {
     init(id);
     return () => {
+      destroy();
       console.log('Widget app removed!!!');
     };
   }, []);
