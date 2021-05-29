@@ -49,17 +49,17 @@ export abstract class AbstractSceneManager {
   );
   protected _controls?: OrbitControls | TrackballControls;
   protected _sceneEntities: ISceneEntity[] = [];
-  updateCamera: (time: number) => void = () => {};
-  preInitHook: () => void = () => {};
-  postInitHook: () => void = () => {};
-  destroyHook: () => void = () => {};
+  protected _preInitHook: () => void = () => {};
+  protected _postInitHook: () => void = () => {};
+  protected _destroyHook: () => void = () => {};
+  _updateCamera: (time: number) => void = () => {};
 
   constructor(
     protected _containerId: string,
     protected _isWorldFlippable = false
   ) {}
 
-  async init() {
+  public async init() {
     // ------>>>
 
     // Init only once
@@ -67,7 +67,7 @@ export abstract class AbstractSceneManager {
     this._isInit = true;
 
     // Enable superclass constructor to adjust settings prior to initialization sequence
-    this.preInitHook();
+    this._preInitHook();
 
     // Get container and add fitting canvas to it
     this._container = document.getElementById(this._containerId);
@@ -80,8 +80,8 @@ export abstract class AbstractSceneManager {
     this._container.style.setProperty('position', 'relative');
 
     // React to resize events on window
-    this.updateCameraAspect = this.updateCameraAspect.bind(this);
-    window.addEventListener('resize', this.updateCameraAspect);
+    // this._updateCameraAspect = this.updateCameraAspect.bind(this);
+    window.addEventListener('resize', this._updateCameraAspect);
 
     // Build Renderer
     const DPR: number = window.devicePixelRatio ? window.devicePixelRatio : 1;
@@ -146,16 +146,16 @@ export abstract class AbstractSceneManager {
 
     // Run updater methods
     this.setHelpersVisibility();
-    this.updateCameraAspect();
+    this._updateCameraAspect();
 
     // Begin Animation
     this._startRendering();
 
     // Enable superclass constructor to adjust settings after to initialization sequence
-    this.postInitHook();
+    this._postInitHook();
   }
 
-  registerSceneEntities = (sceneEntities: ISceneEntity[]) => {
+  protected registerSceneEntities = (sceneEntities: ISceneEntity[]) => {
     sceneEntities.forEach(el => this._sceneEntities.push(el));
   };
 
@@ -164,23 +164,23 @@ export abstract class AbstractSceneManager {
    * designated as 'helpers'. It relies on the practice of setting the property `userData.isHelper = true`
    * on any object you want to be classified as a helper
    */
-  setHelpersVisibility = () => {
+  public setHelpersVisibility = () => {
     this._scene.traverse(child => {
       return child.userData.isHelper && (child.visible = this._isHelpersShown);
     });
   };
 
-  toggleHelpersVisibility = () => {
+  public toggleHelpersVisibility = () => {
     this._isHelpersShown = !this._isHelpersShown;
     this.setHelpersVisibility();
   };
 
-  setFramesPerSecond(newFps: number) {
+  public setFramesPerSecond(newFps: number) {
     if (newFps <= 0 || newFps > 100) return;
     this._fps = newFps;
   }
 
-  updateCameraAspect = () => {
+  private _updateCameraAspect = () => {
     // Not sure where/how, but canvas' style width/height
     // gets altered and needs to be reset to 100%
     this._canvas.style.width = '100%';
@@ -192,13 +192,13 @@ export abstract class AbstractSceneManager {
     this._renderer!.setSize(width, height);
   };
 
-  destroy: () => void = () => {
-    window.removeEventListener('resize', this.updateCameraAspect);
+  public destroy: () => void = () => {
+    window.removeEventListener('resize', this._updateCameraAspect);
     this._stopRendering();
-    this.destroyHook();
+    this._destroyHook();
   };
 
-  _update() {
+  private _update() {
     // Get time
     const elapsedTime = this._clock.getElapsedTime();
 
@@ -206,7 +206,7 @@ export abstract class AbstractSceneManager {
     this._sceneEntities.forEach(el => el.update(elapsedTime));
 
     // Update camera
-    this.updateCamera(elapsedTime);
+    this._updateCamera(elapsedTime);
 
     // Needed for TrackballControls
     this._controls?.update();
@@ -218,7 +218,7 @@ export abstract class AbstractSceneManager {
     }
   }
 
-  _render = () => {
+  private _render = () => {
     if (!this._isRendering) return;
     setTimeout(() => {
       this._requestAnimationFrameId = requestAnimationFrame(this._render);
@@ -226,14 +226,14 @@ export abstract class AbstractSceneManager {
     }, 1000 / this._fps);
   };
 
-  _startRendering = () => {
+  private _startRendering = () => {
     console.log('Starting animation...');
     this._isRendering = true;
     this._clock.start();
     this._render();
   };
 
-  _stopRendering = () => {
+  private _stopRendering = () => {
     console.log('Stopping animation...');
     this._isRendering = false;
     this._clock.stop();

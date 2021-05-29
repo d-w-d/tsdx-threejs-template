@@ -15,3 +15,7 @@ So you have to "manually" scale that helper somehow. So first, you have to get t
 So if you want to get a "scaled" helper to reflect a DL found within a loaded FBX object, it seems to me that you need to first create a DL with a position that reflects the scaled DL, and then use that to create a helper. This is reflected in the code at the writing of this paragraph.
 
 BTW -- I suspect that the FBX loader incorrectly imports the intensity of the DL, since it happens to be 1.
+
+## Misc Notes
+
+- If you want to run `npm run analyze`, you must first run tsdx build without any fancy options, or it will mess up.

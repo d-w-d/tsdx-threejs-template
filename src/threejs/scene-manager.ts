@@ -11,11 +11,11 @@ import { buttonToggleLights } from './buttons/button-toggle-lights';
 import { buttonToggleHelpers } from './buttons/button-toggle-helpers';
 
 /**
- * Implement a scene for this app with 'real' entities
+ * Implement a scene for this app with 'real' scene entities
  */
 export class SceneManager extends AbstractSceneManager
   implements ISceneManager {
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>>>
+  // ~~~>>>
 
   private isRotating = false;
   private demoInterval: NodeJS.Timeout;
@@ -26,7 +26,7 @@ export class SceneManager extends AbstractSceneManager
   private _demoLoadedObject: DemoLoadedObject;
 
   constructor(containerId: string) {
-    // -------------------------->>>
+    // --->>>
 
     super(containerId);
 
@@ -44,10 +44,10 @@ export class SceneManager extends AbstractSceneManager
     ]);
 
     // Logic to run before scene initialization
-    this.preInitHook = () => {};
+    this._preInitHook = () => {};
 
     // Logic to run after scene initialization
-    this.postInitHook = () => {
+    this._postInitHook = () => {
       // --->>>
 
       // Add buttons
@@ -56,13 +56,13 @@ export class SceneManager extends AbstractSceneManager
         this._directionalLight?.setIsOn(this._isDirectionalLightOn);
         this._demoLoadedObject.toggleInternalLights();
       });
-      console.log('>>>', this.toggleLightsButton.innerHTML);
+      this.toggleLightsButton.hasChildNodes();
 
       this.toggleHelpersButton = buttonToggleHelpers(
         this._container!,
         this.toggleHelpersVisibility
       );
-      console.log('>>>', this.toggleHelpersButton);
+      this.toggleHelpersButton.hasChildNodes();
     };
 
     // Set initial camera position
@@ -74,16 +74,13 @@ export class SceneManager extends AbstractSceneManager
       // console.log('>>> This is a demo listener that needs to be removed at end');
     }, 1000);
 
-    this.destroyHook = () => {
+    this._destroyHook = () => {
       clearInterval(this.demoInterval);
     };
   }
 
-  toggleLights = () => {
-    //
-  };
-
-  updateCamera = (time: number) => {
+  // Overwrite protected method to update camera
+  _updateCamera = (time: number) => {
     // -------------------------->>>
 
     // return;
@@ -108,7 +105,7 @@ export class SceneManager extends AbstractSceneManager
     this._camera.lookAt(0, 0, 0);
   };
 
-  toggleRotation = () => {
+  public toggleRotation = () => {
     this.isRotating = !this.isRotating;
     // Reset camera
     if (this.isRotating) {

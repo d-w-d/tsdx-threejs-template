@@ -19,5 +19,5 @@ export interface ISceneEntity extends AbstractSceneEntity {
  * Interface to be implemented by every instance of SceneManager
  */
 export interface ISceneManager extends AbstractSceneManager {
-  updateCamera: (time: number) => void;
+  _updateCamera: (time: number) => void;
 }

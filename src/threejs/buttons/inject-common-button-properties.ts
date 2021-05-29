@@ -28,7 +28,7 @@ export const injectCommonButtonProperties = (
   const link = document.createElement('link');
   link.rel = 'stylesheet';
   link.onload = () => {
-    console.log('Loaded css url for fonts');
+    // console.log('Loaded css url for fonts');
     mutateButton();
   };
   link.onerror = () => {
