@@ -2798,13 +2798,13 @@
       this._camera = new THREE.PerspectiveCamera(initialCameraParams.fieldOfView, initialCameraParams.aspectRatio, initialCameraParams.nearPlane, initialCameraParams.farPlane);
       this._sceneEntities = [];
 
-      this.updateCamera = function () {};
+      this._preInitHook = function () {};
 
-      this.preInitHook = function () {};
+      this._postInitHook = function () {};
 
-      this.postInitHook = function () {};
+      this._destroyHook = function () {};
 
-      this.destroyHook = function () {};
+      this._updateCamera = function () {};
 
       this.registerSceneEntities = function (sceneEntities) {
         sceneEntities.forEach(function (el) {
@@ -2830,7 +2830,7 @@
         _this.setHelpersVisibility();
       };
 
-      this.updateCameraAspect = function () {
+      this._updateCameraAspect = function () {
         // Not sure where/how, but canvas' style width/height
         // gets altered and needs to be reset to 100%
         _this._canvas.style.width = '100%';
@@ -2845,11 +2845,11 @@
       };
 
       this.destroy = function () {
-        window.removeEventListener('resize', _this.updateCameraAspect);
+        window.removeEventListener('resize', _this._updateCameraAspect);
 
         _this._stopRendering();
 
-        _this.destroyHook();
+        _this._destroyHook();
       };
 
       this._render = function () {
@@ -2899,7 +2899,8 @@
               case 2:
                 this._isInit = true; // Enable superclass constructor to adjust settings prior to initialization sequence
 
-                this.preInitHook(); // Get container and add fitting canvas to it
+                this._preInitHook(); // Get container and add fitting canvas to it
+
 
                 this._container = document.getElementById(this._containerId);
 
@@ -2917,10 +2918,10 @@
                 this._container.append(this._canvas);
 
                 this._container.style.setProperty('position', 'relative'); // React to resize events on window
+                // this._updateCameraAspect = this.updateCameraAspect.bind(this);
 
 
-                this.updateCameraAspect = this.updateCameraAspect.bind(this);
-                window.addEventListener('resize', this.updateCameraAspect); // Build Renderer
+                window.addEventListener('resize', this._updateCameraAspect); // Build Renderer
 
                 DPR = window.devicePixelRatio ? window.devicePixelRatio : 1;
                 this._renderer = new THREE.WebGLRenderer({
@@ -2951,19 +2952,19 @@
                 this._controls = !this._isWorldFlippable ? new OrbitControls(this._camera, this._renderer.domElement) : new TrackballControls(this._camera, this._renderer.domElement);
 
                 if (!(this._controls instanceof OrbitControls)) {
-                  _context2.next = 29;
+                  _context2.next = 28;
                   break;
                 }
 
                 this._controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
 
                 this._controls.dampingFactor = 0.25;
-                _context2.next = 37;
+                _context2.next = 36;
                 break;
 
-              case 29:
+              case 28:
                 if (!(this._controls instanceof TrackballControls)) {
-                  _context2.next = 36;
+                  _context2.next = 35;
                   break;
                 }
 
@@ -2972,22 +2973,22 @@
                 this._controls.panSpeed = 0.8;
                 this._controls.keys = ['65', '83', '68']; // a s d
 
-                _context2.next = 37;
+                _context2.next = 36;
                 break;
 
-              case 36:
+              case 35:
                 throw Error('Poor Logic');
 
-              case 37:
+              case 36:
                 if (this._sceneEntities.length) {
-                  _context2.next = 39;
+                  _context2.next = 38;
                   break;
                 }
 
                 throw new Error(asciiError('You have no scene entities!'));
 
-              case 39:
-                _context2.next = 41;
+              case 38:
+                _context2.next = 40;
                 return Promise.all(this._sceneEntities.map( /*#__PURE__*/function () {
                   var _ref = _asyncToGenerator( /*#__PURE__*/runtime_1.mark(function _callee(sceneEntity) {
                     var initiatedSceneEntityGroup;
@@ -3026,17 +3027,19 @@
                   };
                 }()));
 
-              case 41:
+              case 40:
                 // Run updater methods
                 this.setHelpersVisibility();
-                this.updateCameraAspect(); // Begin Animation
+
+                this._updateCameraAspect(); // Begin Animation
+
 
                 this._startRendering(); // Enable superclass constructor to adjust settings after to initialization sequence
 
 
-                this.postInitHook();
+                this._postInitHook();
 
-              case 45:
+              case 44:
               case "end":
                 return _context2.stop();
             }
@@ -3068,7 +3071,8 @@
       }); // Update camera
 
 
-      this.updateCamera(elapsedTime); // Needed for TrackballControls
+      this._updateCamera(elapsedTime); // Needed for TrackballControls
+
 
       (_this$_controls = this._controls) == null ? void 0 : _this$_controls.update(); // Finish loop
 
@@ -10771,7 +10775,7 @@
     link.rel = 'stylesheet';
 
     link.onload = function () {
-      console.log('Loaded css url for fonts');
+      // console.log('Loaded css url for fonts');
       mutateButton();
     };
 
@@ -10860,7 +10864,28 @@
   };
 
   /**
-   * Implement a scene for this app with 'real' entities
+   *
+   * @param container
+   */
+
+  var buttonToggleRotation = function buttonToggleRotation(container, onClickCB) {
+    // --->>>
+    // Warning
+    if (!container) throw new Error('Canvas Container is Falsy!'); // Set properties unique to this button
+
+    var button = document.createElement('div');
+    button.innerText = 'Toggle Rotations';
+    button.style.setProperty('top', '10px');
+    button.style.setProperty('left', '50%');
+    button.style.setProperty('transform', 'translateX(-50%)'); // Set properties common to all buttons; append to container when ready
+
+    injectCommonButtonProperties(button, container, onClickCB); // Finish him
+
+    return button;
+  };
+
+  /**
+   * Implement a scene for this app with 'real' scene entities
    */
 
   var SceneManager = /*#__PURE__*/function (_AbstractSceneManager) {
@@ -10869,16 +10894,13 @@
     function SceneManager(containerId) {
       var _this;
 
-      // -------------------------->>>
-      _this = _AbstractSceneManager.call(this, containerId) || this; // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>>>
+      // --->>>
+      _this = _AbstractSceneManager.call(this, containerId) || this; // ~~~>>>
 
       _this.isRotating = false;
-      _this._isDirectionalLightOn = true;
+      _this._isDirectionalLightOn = true; // Overwrite protected method to update camera
 
-      _this.toggleLights = function () {//
-      };
-
-      _this.updateCamera = function (time) {
+      _this._updateCamera = function (time) {
         // -------------------------->>>
         // return;
         if (!_this.isRotating) return; // Logic for random rotation
@@ -10886,9 +10908,9 @@
 
         var f = 0.5;
         var c = 1.111;
-        var x = 10 * Math.sin(time * 0.1 * f) + c;
-        var y = 10 * Math.cos(time * 0.1 * f * 2 + Math.PI) + c;
-        var z = 10 * Math.sin(time * 0.1 * f + Math.PI * 0.5) + c;
+        var x = 10 * Math.sin(time * 1.1 * f) + c;
+        var y = 10 * Math.cos(time * 1.1 * f * 2 + Math.PI) + c;
+        var z = 10 * Math.sin(time * 1.1 * f + Math.PI * 0.5) + c;
         _this._camera.position.x = x;
         _this._camera.position.y = y;
         _this._camera.position.z = z; // Logic to prevent camera reorientation at zenith
@@ -10923,10 +10945,10 @@
       _this.registerSceneEntities([_this._directionalLight, _this._demoLoadedObject, new SimpleLight(), new MiscHelpers(), new Square(1)]); // Logic to run before scene initialization
 
 
-      _this.preInitHook = function () {}; // Logic to run after scene initialization
+      _this._preInitHook = function () {}; // Logic to run after scene initialization
 
 
-      _this.postInitHook = function () {
+      _this._postInitHook = function () {
         // --->>>
         // Add buttons
         _this.toggleLightsButton = buttonToggleLights(_this._container, function () {
@@ -10937,9 +10959,16 @@
 
           _this._demoLoadedObject.toggleInternalLights();
         });
-        console.log('>>>', _this.toggleLightsButton.innerHTML);
+
+        _this.toggleLightsButton.hasChildNodes();
+
+        _this.toggleRotationButton = buttonToggleRotation(_this._container, _this.toggleRotation);
+
+        _this.toggleRotationButton.hasChildNodes();
+
         _this.toggleHelpersButton = buttonToggleHelpers(_this._container, _this.toggleHelpersVisibility);
-        console.log('>>>', _this.toggleHelpersButton);
+
+        _this.toggleHelpersButton.hasChildNodes();
       }; // Set initial camera position
 
 
@@ -10949,7 +10978,7 @@
       _this.demoInterval = setInterval(function () {// console.log('>>> This is a demo listener that needs to be removed at end');
       }, 1000);
 
-      _this.destroyHook = function () {
+      _this._destroyHook = function () {
         clearInterval(_this.demoInterval);
       };
 

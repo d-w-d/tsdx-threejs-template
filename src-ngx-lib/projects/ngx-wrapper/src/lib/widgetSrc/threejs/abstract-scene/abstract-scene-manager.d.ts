@@ -31,13 +31,13 @@ export declare abstract class AbstractSceneManager {
     protected _camera: THREE.PerspectiveCamera;
     protected _controls?: OrbitControls | TrackballControls;
     protected _sceneEntities: ISceneEntity[];
-    updateCamera: (time: number) => void;
-    preInitHook: () => void;
-    postInitHook: () => void;
-    destroyHook: () => void;
+    protected _preInitHook: () => void;
+    protected _postInitHook: () => void;
+    protected _destroyHook: () => void;
+    _updateCamera: (time: number) => void;
     constructor(_containerId: string, _isWorldFlippable?: boolean);
     init(): Promise<void>;
-    registerSceneEntities: (sceneEntities: ISceneEntity[]) => void;
+    protected registerSceneEntities: (sceneEntities: ISceneEntity[]) => void;
     /**
      * This method lets you show/hide the objects within in your scene
      * designated as 'helpers'. It relies on the practice of setting the property `userData.isHelper = true`
@@ -46,10 +46,10 @@ export declare abstract class AbstractSceneManager {
     setHelpersVisibility: () => void;
     toggleHelpersVisibility: () => void;
     setFramesPerSecond(newFps: number): void;
-    updateCameraAspect: () => void;
+    private _updateCameraAspect;
     destroy: () => void;
-    _update(): void;
-    _render: () => void;
-    _startRendering: () => void;
-    _stopRendering: () => void;
+    private _update;
+    private _render;
+    private _startRendering;
+    private _stopRendering;
 }

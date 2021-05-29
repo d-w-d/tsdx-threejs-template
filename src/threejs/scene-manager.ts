@@ -9,6 +9,7 @@ import { DirectionalLight } from './scene-entities/directional-light';
 import { ISceneManager } from './abstract-scene/models';
 import { buttonToggleLights } from './buttons/button-toggle-lights';
 import { buttonToggleHelpers } from './buttons/button-toggle-helpers';
+import { buttonToggleRotation } from './buttons/button-toggle-rotation';
 
 /**
  * Implement a scene for this app with 'real' scene entities
@@ -20,6 +21,7 @@ export class SceneManager extends AbstractSceneManager
   private isRotating = false;
   private demoInterval: NodeJS.Timeout;
   private toggleLightsButton: HTMLElement | undefined;
+  private toggleRotationButton: HTMLElement | undefined;
   private toggleHelpersButton: HTMLElement | undefined;
   private _directionalLight?: DirectionalLight;
   private _isDirectionalLightOn = true;
@@ -58,6 +60,12 @@ export class SceneManager extends AbstractSceneManager
       });
       this.toggleLightsButton.hasChildNodes();
 
+      this.toggleRotationButton = buttonToggleRotation(
+        this._container!,
+        this.toggleRotation
+      );
+      this.toggleRotationButton.hasChildNodes();
+
       this.toggleHelpersButton = buttonToggleHelpers(
         this._container!,
         this.toggleHelpersVisibility
@@ -90,9 +98,9 @@ export class SceneManager extends AbstractSceneManager
     // This illustrates some important concepts for controlling camera
     const f = 0.5;
     const c = 1.111;
-    const x = 10 * Math.sin(time * 0.1 * f) + c;
-    const y = 10 * Math.cos(time * 0.1 * f * 2 + Math.PI) + c;
-    const z = 10 * Math.sin(time * 0.1 * f + Math.PI * 0.5) + c;
+    const x = 10 * Math.sin(time * 1.1 * f) + c;
+    const y = 10 * Math.cos(time * 1.1 * f * 2 + Math.PI) + c;
+    const z = 10 * Math.sin(time * 1.1 * f + Math.PI * 0.5) + c;
     this._camera.position.x = x;
     this._camera.position.y = y;
     this._camera.position.z = z;
